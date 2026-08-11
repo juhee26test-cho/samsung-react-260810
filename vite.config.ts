@@ -12,5 +12,12 @@ export default defineConfig({
   ],
   resolve: {
     alias: [{ find: '@', replacement: '/src' }]
+  },
+  // 개발용 서버 옵션
+  server: {
+    proxy: {
+      // http://localhost:5173/api
+      '/api': { target: 'http://localhost:3000' }
+    }
   }
 })
