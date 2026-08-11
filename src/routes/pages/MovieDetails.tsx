@@ -41,9 +41,9 @@ export default function MovieDetails() {
   const { data: movie } = useQuery<Movie>({
     queryKey: ['movie details', movieId],
     queryFn: async () => {
-      const { data } = await axios.get<Movie>(
-        `https://omdbapi.com?apikey=9d38c929&i=${movieId}`
-      )
+      const { data } = await axios.post<Movie>('/api/movie', {
+        id: movieId
+      })
       return data
     },
     staleTime: 1000 * 60 * 60 * 24
