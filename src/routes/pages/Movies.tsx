@@ -1,14 +1,19 @@
 import axios from 'axios'
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Outlet } from 'react-router'
 import { useMovieStore } from '@/stores/movie'
 
-export interface ResponseData {
+export interface ResponseDataSuccess {
+  Response: 'True'
   Search: Movie[]
   totalResults: string
-  Response: string
 }
+export interface ResponseDataError {
+  Response: 'False'
+  Error: string
+}
+export type ResponseData = ResponseDataSuccess | ResponseDataError
 export interface Movie {
   Title: string
   Year: string
@@ -18,21 +23,29 @@ export interface Movie {
 }
 
 export default function Movies() {
+  const queryClient = useQueryClient()
   // const { searchText, setSearchText } = useMovieStore(s => s) // ❌ 잘못된 코드!
   const searchText = useMovieStore(s => s.searchText)
   const setSearchText = useMovieStore(s => s.setSearchText)
   const [inputText, setInputText] = useState(searchText)
-  const { data: movies = [] } = useQuery({
+  const queryOptions = {
     queryKey: ['movies', searchText],
     queryFn: async () => {
+      // await new Promise(resolve => setTimeout(resolve, 3000))
       const { data } = await axios.post<ResponseData>('/api/movie', {
         title: searchText
       })
-      return data.Search
+      return data
     },
     staleTime: 1000 * 60 * 60 * 24, // 캐싱하는 시간(ms)
-    enabled: Boolean(searchText)
-  })
+    enabled: Boolean(searchText),
+    select: data => {
+      const movies = data.Response === 'True' ? data.Search : []
+      return movies.filter(movie => Number(movie.Year) <= 2015)
+    },
+    placeholderData: prev => prev // 깜빡이는 부분에 채워넣을 데이터
+  }
+  const { data: movies, refetch } = useQuery(queryOptions)
 
   function fetchMovies() {
     setSearchText(inputText)
@@ -52,11 +65,19 @@ export default function Movies() {
         <button onClick={() => fetchMovies()}>검색!</button>
       </div>
       <div>
+        <button onClick={() => refetch()}>다시 가져오기!(무조건)</button>
+        <button onClick={() => queryClient.fetchQuery(queryOptions)}>
+          다시 가져오기!(신선도에 따라)
+        </button>
+      </div>
+      <div>
         <ul>
-          {movies.map(movie => {
+          {movies?.map(movie => {
             return (
               <li key={movie.imdbID}>
-                <Link to={`/movies/${movie.imdbID}`}>{movie.Title}</Link>
+                <Link to={`/movies/${movie.imdbID}`}>
+                  {movie.Title}({movie.Year})
+                </Link>
               </li>
             )
           })}

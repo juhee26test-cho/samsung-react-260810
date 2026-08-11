@@ -5,6 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import prettierRecommended from 'eslint-plugin-prettier/recommended'
+import tanstackQuery from '@tanstack/eslint-plugin-query'
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -15,10 +16,11 @@ export default defineConfig([
       tseslint.configs.recommended,
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
-      prettierRecommended
+      prettierRecommended,
+      ...tanstackQuery.configs['flat/recommended']
     ],
     languageOptions: {
-      globals: globals.browser,
-    },
-  },
+      globals: globals.browser
+    }
+  }
 ])

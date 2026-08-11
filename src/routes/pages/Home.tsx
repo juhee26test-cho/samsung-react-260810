@@ -5,8 +5,14 @@ export default function Home() {
   const { data } = useQuery({
     queryKey: ['test'],
     queryFn: async () => {
+      await new Promise(resolve => setTimeout(resolve, 2000))
       const { data } = await axios.get('/api/test')
       return data
+    },
+    notifyOnChangeProps: ['data', 'error'],
+    initialData: {
+      name: 'Neo',
+      age: 22
     }
   })
 

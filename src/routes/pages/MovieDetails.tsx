@@ -38,6 +38,7 @@ export interface Rating {
 
 export default function MovieDetails() {
   const { movieId } = useParams()
+  // const 반환값 = useQuery<데이터타입>(옵션)
   const { data: movie } = useQuery<Movie>({
     queryKey: ['movie details', movieId],
     queryFn: async () => {
